@@ -87,8 +87,8 @@ jobs:
         run: ls out
       - name: jekyll
         run: touch ./out/.nojekyll
-      - name: ls out
-        run: ls out
+      - name: ls -a out
+        run: ls -a out
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v2
         with:
