@@ -81,8 +81,14 @@ jobs:
         run: ${{ steps.detect-package-manager.outputs.runner }} next build
       - name: Static HTML export with Next.js
         run: ${{ steps.detect-package-manager.outputs.runner }} next export
+      - name: ls
+        run: ls
+      - name: ls out
+        run: ls out
       - name: jekyll
-        run: touch ./.nojekyll
+        run: touch ./out/.nojekyll
+      - name: ls out
+        run: ls out
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v2
         with:
