@@ -3,8 +3,8 @@ export const addEmailToParsedCSV = (
   clientId: string,
   email: string
 ) => {
-  const newArrays = arrays.map((row, i) => {
-    if (i === 1) {
+  return arrays.map((row, i) => {
+    if (i === 0) {
       row[4] = "メールアドレス";
       return row;
     }
@@ -17,6 +17,4 @@ export const addEmailToParsedCSV = (
 
     return row;
   });
-
-  return newArrays;
 };

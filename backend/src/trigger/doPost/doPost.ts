@@ -1,8 +1,10 @@
 import { addEmailToParsedCSV } from "../../module/addEmailToParsedCSV";
 import { checkCustomerIDAndName } from "../../module/checkCustomerIDAndName";
-import { csvToArrays } from "../../module/csvToArrays";
+import { utf8CSVToArrays } from "../../module/utf8CSVToArrays";
 import { setupOutput } from "../../service/setupOutput";
 import { sendMail } from "../../service/sendMail";
+import { sendMailOfNotice } from "../../service/sendMailOfNotice";
+import { PIC_EMAIL } from "../../value";
 
 export const doPost = (e: GoogleAppsScript.Events.DoPost) => {
   const params = JSON.parse(e.postData.contents);
@@ -23,30 +25,38 @@ export const doPost = (e: GoogleAppsScript.Events.DoPost) => {
 
   const file = DriveApp.getFileById(fileId);
 
+  // ファイルの存在確認
   if (!file) {
-    console.log("ファイルが存在しません。" + `fileId=${fileId}`);
-    return;
+    const message = "ファイルが存在しません。" + `fileId=${fileId}`;
+    console.log(message);
+    const output = setupOutput(false, message, params);
+    return output;
   }
 
+  // ファイル名確認
   if (file.getName() !== fileName) {
-    console.log("ファイル名が正しくありません。" + `fileName=${fileName}`);
-    return;
+    const message = "ファイル名が正しくありません。" + `fileName=${fileName}`;
+    console.log(message);
+    const output = setupOutput(false, message, params);
+    return output;
   }
 
-  const arrays = csvToArrays(file);
+  const arrays = utf8CSVToArrays(file.getBlob());
 
+  // 顧客IDと会社名の一致を確認
   const isCorrectCustomer = checkCustomerIDAndName(
     arrays,
     clientId,
     clientName1
   );
   if (!isCorrectCustomer) {
-    console.log(
+    const message =
       "顧客が存在しません。" +
-        `clientId=${clientId}` +
-        `clientName1=${clientName1}`
-    );
-    return;
+      `clientId=${clientId}` +
+      `clientName1=${clientName1}`;
+    console.log(message);
+    const output = setupOutput(false, message, params);
+    return output;
   }
 
   // メールをセット
@@ -59,7 +69,11 @@ export const doPost = (e: GoogleAppsScript.Events.DoPost) => {
   // サンクスメールを送信
   sendMail(clientName1, clientName2, companyAbbreviation, email);
 
-  const output = setupOutput(params);
+  sendMailOfNotice(
+    `メールアドレスが収集されました。\nファイル名: ${fileName}\n顧客ID: ${clientId}\n顧客名: ${clientName1}`,
+    PIC_EMAIL!
+  );
 
+  const output = setupOutput(true, "success", params);
   return output;
 };

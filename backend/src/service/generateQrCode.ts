@@ -18,6 +18,7 @@ export const generateQrCode = (
 
     // 得意先ID: スペース含む文字列
     const clientId = row[0];
+    console.log("clientId", clientId);
     const clientName1 = row[1];
 
     const queryParams = {

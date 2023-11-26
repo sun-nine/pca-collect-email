@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import { Box } from "@chakra-ui/react";
+import { Box, useToast } from "@chakra-ui/react";
 import useForm from "@/hooks/useForm";
 import { Head } from "@/components/Head";
 import { TopLayout } from "@/components/templates/Top";
@@ -21,7 +21,6 @@ export default function Home() {
     setIsLoading,
     isValidForm,
   } = useForm();
-
   const router = useRouter();
   const {
     clientId,
@@ -31,6 +30,7 @@ export default function Home() {
     fileId,
     fileName,
   } = router.query;
+  const toast = useToast();
 
   const handleSubmit = (e: any) => {
     e.preventDefault();
@@ -49,6 +49,7 @@ export default function Home() {
       email,
     };
 
+    // https://teratail.com/questions/qodwcsntzavs5n
     const postparam = {
       method: "POST",
       Accept: "application/json",
@@ -58,18 +59,39 @@ export default function Home() {
 
     fetch(process.env.NEXT_PUBLIC_FORM_BASE_URL!, postparam as any)
       .then((response) => {
+        console.log("response", response);
         if (response.ok) {
           return response.json();
         } else {
-          throw new Error("Network response was not ok");
+          toast({
+            title: "リクエスト中にエラーが発生しました。",
+            description: "",
+            status: "error",
+            duration: 9000,
+            isClosable: true,
+          });
+          setIsLoading(false);
+          throw new Error("リクエスト中にエラーが発生しました。");
         }
       })
       .then((data) => {
-        console.log(data);
-        router.push("/thanks");
+        console.log("data", data);
+        if (data.status) {
+          router.push("/thanks");
+        } else {
+          toast({
+            title: "無効なリクエストです。",
+            description: data.message,
+            status: "error",
+            duration: 9000,
+            isClosable: true,
+          });
+          setIsLoading(false);
+          throw new Error(data.message);
+        }
       })
       .catch((error) => {
-        console.error("Fetch error:", error);
+        console.log("Fetch error:", error);
       });
   };
 
